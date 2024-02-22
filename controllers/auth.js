@@ -1,6 +1,7 @@
 const User = require("../models/auth");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const { executeQuery } = require("../models");
 
 exports.Register = async (req, res, next) => {
   try {
@@ -41,38 +42,44 @@ exports.Register = async (req, res, next) => {
   }
 };
 
-exports.Login = async (req, res, next) => {
+exports.Login = async (req, res) => {
   try {
     const useremail = req.body.email;
     const userpassword = req.body.password;
-    const user = await User.findOne({ email: useremail });
-    const { id, email, _id } = user;
-    if (user) {
-      const valid = await bcrypt.compareSync(userpassword, user.password);
+
+    const sql = 'SELECT * FROM users WHERE email = $1';
+    const users = await executeQuery(sql, [useremail]);
+
+    if (users.length > 0) {
+      const user = users[0];
+      const valid = bcrypt.compareSync(userpassword, user.password);
+
       if (valid) {
-        const token = jwt.sign({ id, email, _id }, process.env.AUTH_SECRET);
+        const token = jwt.sign({ id: user.id, email: user.email }, process.env.AUTH_SECRET, {
+          expiresIn: '1h'
+        });
         res.status(200).json({
           success: true,
           message: "Logged In Successfully",
-          _id,
-          email,
+          id: user.id,
+          email: user.email,
           token
         });
       } else {
-        res
-          .status(500)
-          .json({ success: false, message: "Input correct password" });
+        res.status(401).json({ success: false, message: "Incorrect Password" });
       }
+    } else {
+      res.status(404).json({ success: false, message: "User not found" });
     }
   } catch (error) {
-    if (error) {
-      return res.json({
-        success: false,
-        errors: "Incorrect Email or Password",
-      });
-    }
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred during the login process."
+    });
   }
 };
+
 
 exports.getUsers = async (req, res, next) => {
   try {

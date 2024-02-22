@@ -20,5 +20,6 @@ app.get("/", (req, res) => {
     });
 });
 app.use("/auth", routes.auth);
+app.use("/vehicles", routes.vehicles);
 
 app.listen(port, console.log("App running on port: ", port))
