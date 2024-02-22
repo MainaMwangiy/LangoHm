@@ -1,28 +1,30 @@
-const mongoose = require("mongoose")
-const uuid = require("uuid");
+const Sequelize = require('sequelize')
+const db = require('../models/index')
 
-const AuthSchema = new mongoose.Schema({
-    id: {
-        type: String,
-        default: uuid.v1,
-        unique: true
+module.exports = db.sequelize.define(
+    'user',
+    {
+        id: {
+            type: Sequelize.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        name: {
+            type: Sequelize.STRING
+        },
+        email: {
+            type: Sequelize.STRING
+        },
+        role: {
+            type: Sequelize.STRING
+        },
+        password: {
+            type: Sequelize.STRING
+        }
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    password: {
-        type: String,
-        required: true
-    },
-    created: {
-        type: Date,
-        default: Date.now
-    },
-    deleted: {
-        type: Boolean
-    }
-})
-
-module.exports = mongoose.model("Auth", AuthSchema)
+    {
+        timestamps: false
+    }, {
+    freezeTableName: true,
+}
+)
