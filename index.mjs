@@ -12,7 +12,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 const port = process.env.PORT || 5000;
 
-app.use("/", routes.home);
+app.get("/", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Welcome to LangoHM API"
+    });
+});
 app.use("/auth", routes.auth);
 app.use("/vehicles", routes.vehicles);
 
