@@ -4,6 +4,7 @@
   "description": "Nodejs template",
   "main": "index.mjs",
   "scripts": {
+    "start": "node index.mjs",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.mjs"
   },
