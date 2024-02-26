@@ -43,8 +43,8 @@ exports.Register = async (req, res, next) => {
 };
 
 exports.Login = async (req, res) => {
+  const { email: useremail, password: userpassword } = { ...req.params, ...req.body, ...req.query };
   try {
-    const { email: useremail, password: userpassword } = { ...req.params, ...req.body, ...req.query };
     const sql = 'SELECT * FROM users WHERE email = $1';
     const users = await executeQuery(sql, [useremail]);
 
@@ -70,7 +70,14 @@ exports.Login = async (req, res) => {
       res.status(404).json({ success: false, message: "User not found" });
     }
   } catch (error) {
-    console.error('Login error:', error);
+    console.error({
+      timestamp: new Date().toISOString(),
+      type: 'LoginError',
+      message: error.message,
+      stack: error.stack,
+      useremail,
+    });
+
     if (error.stack) console.error(error.stack);
     res.status(500).json({
       success: false,
