@@ -45,7 +45,6 @@ exports.Register = async (req, res, next) => {
 exports.Login = async (req, res) => {
   const { email: useremail, password: userpassword } = { ...req.params, ...req.body, ...req.query };
   try {
-    console.log("testing in production")
     const sql = 'SELECT * FROM users WHERE email = $1';
     const users = await executeQuery(sql, [useremail]);
 
@@ -75,10 +74,8 @@ exports.Login = async (req, res) => {
       timestamp: new Date().toISOString(),
       type: 'LoginError',
       message: error.message,
-      stack: error.stack,
-      useremail,
+      stack: error.stack
     });
-    console.log(`Database connection string: ${process.env.DATABASE_URL}`);
     if (error.stack) console.error(error.stack);
     res.status(500).json({
       success: false,
