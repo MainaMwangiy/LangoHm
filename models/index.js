@@ -8,6 +8,7 @@ const pool = new Pool({
     }
 });
 
+const environment = process.env.NODE_ENV === 'production';
 
 const testDBConnection = async () => {
     try {
@@ -18,16 +19,30 @@ const testDBConnection = async () => {
     }
 };
 
-
-testDBConnection();
+if (!environment) {
+    testDBConnection();
+}
 
 const executeQuery = async (sql, params = []) => {
     const client = await pool.connect();
     try {
         const res = await client.query(sql, params);
         return res.rows;
-    } catch (err) {
-        console.error(err.stack);
+    } catch (error) {
+        console.error({
+            timestamp: new Date().toISOString(),
+            type: 'SQLError',
+            message: error.message,
+            stack: error.stack,
+            client,
+        });
+        console.log(`Database connection string: ${process.env.DATABASE_URL}`);
+        if (error.stack) console.error(error.stack);
+        res.status(500).json({
+            success: false,
+            message: "An error occurred during the login process.",
+            error: error.message
+        });
     } finally {
         client.release();
     }
