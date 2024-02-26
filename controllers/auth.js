@@ -44,9 +44,7 @@ exports.Register = async (req, res, next) => {
 
 exports.Login = async (req, res) => {
   try {
-    const useremail = req.body.email;
-    const userpassword = req.body.password;
-
+    const { email: useremail, password: userpassword } = { ...req.params, ...req.body, ...req.query };
     const sql = 'SELECT * FROM users WHERE email = $1';
     const users = await executeQuery(sql, [useremail]);
 
@@ -73,9 +71,11 @@ exports.Login = async (req, res) => {
     }
   } catch (error) {
     console.error('Login error:', error);
+    if (error.stack) console.error(error.stack);
     res.status(500).json({
       success: false,
-      message: "An error occurred during the login process."
+      message: "An error occurred during the login process.",
+      error: error.message
     });
   }
 };

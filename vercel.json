@@ -12,5 +12,11 @@
             "src": "/(.*)",
             "dest": "/index.mjs"
         }
+    ],
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/api"
+        }
     ]
 }
