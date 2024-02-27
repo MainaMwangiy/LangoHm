@@ -45,7 +45,6 @@ exports.Register = async (req, res, next) => {
 exports.Login = async (req, res) => {
   const { email: useremail, password: userpassword } = { ...req.params, ...req.body, ...req.query };
   try {
-    console.log("testing in production")
     const sql = 'SELECT * FROM users WHERE email = $1';
     const users = await executeQuery(sql, [useremail]);
 
@@ -75,10 +74,8 @@ exports.Login = async (req, res) => {
       timestamp: new Date().toISOString(),
       type: 'LoginError',
       message: error.message,
-      stack: error.stack,
-      useremail,
+      stack: error.stack
     });
-    console.log(`Database connection string: ${process.env.DATABASE_URL}`);
     if (error.stack) console.error(error.stack);
     res.status(500).json({
       success: false,
@@ -88,137 +85,32 @@ exports.Login = async (req, res) => {
   }
 };
 
-
-exports.getUsers = async (req, res, next) => {
+exports.getUserById = async (req, res, next) => {
+  const { id } = { ...req.params, ...req.body, ...req.query };
   try {
-    const user = await User.find({});
+    const sql = 'SELECT * FROM users WHERE id = $1';
+    const user = await executeQuery(sql, [id]);
     if (user) {
-      res.status(200).json({ user });
+      res.status(200).json({
+        success: true,
+        message: "User Loaded Successfully",
+        data: user
+      });
     } else {
-      throw new Error();
+      res.status(401).json({ success: false, message: "Incorrect Password" });
     }
   } catch (error) {
-    if (error) {
-      return res.json({
-        success: false,
-        errors: "No details found",
-      });
-    }
-  }
-};
-
-exports.getAllSoftDeletedUsers = async (req, res) => {
-  User.find()
-    .where("deleted")
-    .equals(true)
-    .then((data) => {
-      res
-        .status(200)
-        .json({
-          responseStatusCode: 200,
-          responseDescription: "users fetch success!",
-          data: data,
-        });
-    })
-    .catch((err) => {
-      console.log(err);
-      res
-        .status(200)
-        .json({
-          responseStatusCode: 500,
-          responseDescription:
-            "we encountered an error while fetching the users!",
-          error: err,
-        });
+    console.error({
+      timestamp: new Date().toISOString(),
+      type: 'LoginError',
+      message: error.message,
+      stack: error.stack
     });
-};
-
-exports.getAllActiveUsers = async (req, res) => {
-  User.find()
-    .where("deleted")
-    .equals(false)
-    .then((data) => {
-      res
-        .status(200)
-        .json({
-          responseStatusCode: 200,
-          responseDescription: "users fetch success!",
-          data: data,
-        });
-    })
-    .catch((err) => {
-      console.log(err);
-      res
-        .status(200)
-        .json({
-          responseStatusCode: 500,
-          responseDescription:
-            "we encountered an error while fetching the users!",
-          error: err,
-        });
+    if (error.stack) console.error(error.stack);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred loadin the user.",
+      error: error.message
     });
-};
-
-exports.softDeleteUsers = async (req, res, next) => {
-  let deleteReqBody = {
-    deleted: true,
-  };
-  User.findByIdAndUpdate({ _id: req.body.id }, deleteReqBody)
-    .then((data) => {
-      res.status(200).json({
-        responseStatusCode: 200,
-        responseDescription: "User soft deleted successfully!",
-        data: data,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(200).json({
-        responseStatusCode: 500,
-        responseDescription:
-          "we encountered an error while deleting the user! supply a correct ID",
-        error: err,
-      });
-    });
-};
-
-exports.editUsers = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    user.email = req.body.email;
-    if (req.body.password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = bcrypt.hashSync(req.body.password, salt);
-    }
-    await user.save();
-    res.status(200).json({ message: "User Updated Successfully" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Internal Server Error" });
   }
 }
-
-exports.getProfile = async (req, res, next) => {
-  User.findOne({ _id: req.params.id })
-    .where("deleted")
-    .equals(false)
-    .then((data) => {
-      res.status(200).json({
-        responseStatusCode: 200,
-        responseDescription: "User profile loaded successfully!",
-        data: data,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(200).json({
-        responseStatusCode: 500,
-        responseDescription:
-          "we encountered an error while deleting the user! supply a correct ID",
-        error: err,
-      });
-    });
-};

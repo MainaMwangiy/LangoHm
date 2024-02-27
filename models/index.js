@@ -36,11 +36,10 @@ const executeQuery = async (sql, params = []) => {
             stack: error.stack,
             client,
         });
-        console.log(`Database connection string: ${process.env.DATABASE_URL}`);
         if (error.stack) console.error(error.stack);
         res.status(500).json({
             success: false,
-            message: "An error occurred during the login process.",
+            message: "An error occurred when connecting to db.",
             error: error.message
         });
     } finally {
