@@ -2,6 +2,30 @@ const User = require("../models/auth");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { executeQuery } = require("../models");
+const { networkInterfaces } = require('os');
+const os = require('os');
+
+const getIPAddress = () => {
+  const nets = networkInterfaces();
+  let ipAddress = null;
+
+  console.log("nets", nets)
+  for (const name of Object.keys(nets)) {
+    console.log("name", name)
+    for (const net of nets[name]) {
+      console.log("net", net)
+      // Retrieve only IPv4 addresses
+      if (net.family === 'IPv4' && !net.internal) {
+        ipAddress = net.address;
+        break; // Stop at the first valid IP address
+      }
+    }
+    if (ipAddress) break; // Stop once an IP address is found
+  }
+
+  return ipAddress;
+};
+
 
 exports.Register = async (req, res, next) => {
   try {
@@ -47,7 +71,7 @@ exports.Login = async (req, res) => {
   try {
     const sql = 'SELECT * FROM users WHERE email = $1';
     const users = await executeQuery(sql, [useremail]);
-
+    const ipAddress = getIPAddress();
     if (users.length > 0) {
       const user = users[0];
       const valid = bcrypt.compareSync(userpassword, user.password);
@@ -61,7 +85,9 @@ exports.Login = async (req, res) => {
           message: "Logged In Successfully",
           id: user.id,
           email: user.email,
-          token
+          token,
+          ip: ipAddress,
+          hostname: os.hostname()
         });
       } else {
         res.status(401).json({ success: false, message: "Incorrect Password" });
