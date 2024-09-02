@@ -85,6 +85,7 @@ exports.Login = async (req, res) => {
           message: "Logged In Successfully",
           id: user.id,
           email: user.email,
+          role: user.role,
           token,
           ip: ipAddress,
           hostname: os.hostname()
