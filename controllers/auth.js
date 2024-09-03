@@ -2,6 +2,25 @@ const User = require("../models/auth");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { executeQuery } = require("../models");
+const { networkInterfaces } = require('os');
+const os = require('os');
+
+const getIPAddress = () => {
+  const nets = networkInterfaces();
+  let ipAddress = null;
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      if (net.family === 'IPv4' && !net.internal) {
+        ipAddress = net.address;
+        break;
+      }
+    }
+    if (ipAddress) break;
+  }
+
+  return ipAddress;
+};
+
 
 exports.Register = async (req, res, next) => {
   try {
@@ -47,21 +66,24 @@ exports.Login = async (req, res) => {
   try {
     const sql = 'SELECT * FROM users WHERE email = $1';
     const users = await executeQuery(sql, [useremail]);
-
+    const ipAddress = getIPAddress();
     if (users.length > 0) {
       const user = users[0];
       const valid = bcrypt.compareSync(userpassword, user.password);
 
       if (valid) {
-        const token = jwt.sign({ id: user.id, email: user.email }, process.env.AUTH_SECRET, {
+        const token = jwt.sign({ id: user.user_id, email: user.email }, process.env.AUTH_SECRET, {
           expiresIn: '1h'
         });
         res.status(200).json({
           success: true,
           message: "Logged In Successfully",
-          id: user.id,
+          id: user.user_id,
           email: user.email,
-          token
+          role: user.role,
+          token,
+          ip: ipAddress,
+          hostname: os.hostname()
         });
       } else {
         res.status(401).json({ success: false, message: "Incorrect Password" });
@@ -86,10 +108,10 @@ exports.Login = async (req, res) => {
 };
 
 exports.getUserById = async (req, res, next) => {
-  const { id } = { ...req.params, ...req.body, ...req.query };
+  const { user_id } = { ...req.params, ...req.body, ...req.query };
   try {
-    const sql = 'SELECT * FROM users WHERE id = $1';
-    const user = await executeQuery(sql, [id]);
+    const sql = 'SELECT * FROM users WHERE user_id = $1';
+    const user = await executeQuery(sql, [user_id]);
     if (user) {
       res.status(200).json({
         success: true,
