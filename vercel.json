@@ -5,25 +5,12 @@
         {
             "src": "index.mjs",
             "use": "@vercel/node"
-        },
-        {
-            "src": "api/auth/callback.js",
-            "use": "@vercel/node"
         }
     ],
     "routes": [
         {
-            "src": "/api/auth/callback",
-            "dest": "/api/auth/callback.js"
-        },
-        {
             "src": "/(.*)",
             "dest": "index.mjs"
         }
-    ],
-    "functions": {
-        "api/auth/callback.js": {
-            "runtime": "nodejs14.x"
-        }
-    }
+    ]
 }
