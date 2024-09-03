@@ -8,19 +8,14 @@ const os = require('os');
 const getIPAddress = () => {
   const nets = networkInterfaces();
   let ipAddress = null;
-
-  console.log("nets", nets)
   for (const name of Object.keys(nets)) {
-    console.log("name", name)
     for (const net of nets[name]) {
-      console.log("net", net)
-      // Retrieve only IPv4 addresses
       if (net.family === 'IPv4' && !net.internal) {
         ipAddress = net.address;
-        break; // Stop at the first valid IP address
+        break;
       }
     }
-    if (ipAddress) break; // Stop once an IP address is found
+    if (ipAddress) break;
   }
 
   return ipAddress;
@@ -77,13 +72,13 @@ exports.Login = async (req, res) => {
       const valid = bcrypt.compareSync(userpassword, user.password);
 
       if (valid) {
-        const token = jwt.sign({ id: user.id, email: user.email }, process.env.AUTH_SECRET, {
+        const token = jwt.sign({ id: user.user_id, email: user.email }, process.env.AUTH_SECRET, {
           expiresIn: '1h'
         });
         res.status(200).json({
           success: true,
           message: "Logged In Successfully",
-          id: user.id,
+          id: user.user_id,
           email: user.email,
           role: user.role,
           token,
@@ -113,10 +108,10 @@ exports.Login = async (req, res) => {
 };
 
 exports.getUserById = async (req, res, next) => {
-  const { id } = { ...req.params, ...req.body, ...req.query };
+  const { user_id } = { ...req.params, ...req.body, ...req.query };
   try {
-    const sql = 'SELECT * FROM users WHERE id = $1';
-    const user = await executeQuery(sql, [id]);
+    const sql = 'SELECT * FROM users WHERE user_id = $1';
+    const user = await executeQuery(sql, [user_id]);
     if (user) {
       res.status(200).json({
         success: true,
