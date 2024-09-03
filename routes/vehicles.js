@@ -2,7 +2,7 @@ const controllers = require("../controllers");
 
 const router = require("express").Router()
 
-router.post("/list", controllers.ListVehicle)
-router.post("/list/:id", controllers.getUserVehicleDetails)
+router.all("/list", controllers.ListVehicle)
+router.all("/list/:id", controllers.getUserVehicleDetails)
 
 module.exports = router;

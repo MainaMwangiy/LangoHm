@@ -13,18 +13,18 @@ const getAllUsers = async () => {
 };
 
 const getUserById = async (id) => {
-    const sql = `SELECT * FROM users WHERE id = $1;`;
+    const sql = `SELECT * FROM users WHERE user_id = $1;`;
     return await executeQuery(sql, [id]);
 };
 
 const updateUser = async (id, user) => {
     const { name, email, role, password } = user;
-    const sql = `UPDATE users SET name = $2, email = $3, role = $4, password = $5 WHERE id = $1 RETURNING *;`;
+    const sql = `UPDATE users SET name = $2, email = $3, role = $4, password = $5 WHERE user_id = $1 RETURNING *;`;
     return await executeQuery(sql, [id, name, email, role, password]);
 };
 
 const deleteUser = async (id) => {
-    const sql = `DELETE FROM users WHERE id = $1 RETURNING *;`;
+    const sql = `DELETE FROM users WHERE user_id = $1 RETURNING *;`;
     return await executeQuery(sql, [id]);
 };
 
