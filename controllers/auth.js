@@ -136,3 +136,27 @@ exports.getUserById = async (req, res, next) => {
     });
   }
 }
+
+exports.ssoLogin = async (req, res, next) => {
+  let { user_id, name, email, role, image_url } = req.body;
+  role = role || 'user';
+  try {
+    const response = await executeQuery(
+      'SELECT * FROM  users WHERE email = $1',
+      [email]
+    );
+    if (Object.entries(response).length > 0) {
+      const user = response[0];
+      return res.status(200).json(user);
+    }
+    const result = await executeQuery(
+      'INSERT INTO users (user_id,name, email,role, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [user_id, name, email, role, image_url]
+    );
+    return res.status(201).json(result);
+
+  } catch (error) {
+    console.error('Error during SSO login/signup:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
