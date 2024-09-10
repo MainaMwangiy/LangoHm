@@ -10,6 +10,7 @@ const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 const port = process.env.PORT || 5000;
 
@@ -46,6 +47,9 @@ app.all('/api/notifications/admin', async (req, res) => {
 
 app.all('/api/notifications/user', async (req, res) => {
     const { id } = { ...req.body, ...req.query, ...req.params };
+    if (!id) {
+        return res.status(400).json({ success: false, message: 'ID is required' });
+    }
     const sql = 'SELECT * FROM notifications WHERE user_id = $1';
     const results = await executeQuery(sql, [id]);
     res.status(200).json({ success: true, data: results });
