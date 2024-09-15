@@ -63,5 +63,30 @@ app.all('/api/notifications/read/:id', async (req, res) => {
     );
     res.status(200).json({ success: true, data: results });
 });
+app.all('/api/notifications/:notificationId/status', async (req, res) => {
+    const { notification_id, user_id, status } = { ...req.body, ...req.query, ...req.params };
+    if (!['read', 'unread'].includes(status)) {
+        return res.status(400).json({ success: false, message: 'Invalid status provided' });
+    }
+    try {
+        const result = await executeQuery(
+            `UPDATE notifications 
+             SET status = $1 
+             WHERE notification_id = $2 AND user_id = $3
+             RETURNING *`,
+            [status, notification_id, user_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Notification not found or access denied' });
+        }
+
+        res.status(200).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+        console.error('Error updating notification status:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
 
 app.listen(port, console.log("App running on port: ", port))
